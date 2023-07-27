@@ -10,7 +10,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
-    private lateinit var binding : FragmentHomeBinding
+    private lateinit var binding: FragmentHomeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,22 +22,31 @@ class HomeFragment : Fragment() {
     ): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         initListeners()
-
+        obtenerTarea()
         return binding.root
     }
 
     private fun initListeners() {
-        binding.btnRealizar.setOnClickListener{
+        binding.btnRealizar.setOnClickListener {
             val texto = binding.editAgregarTarea.text.toString()
             guardarTarea(texto)
+
         }
     }
 
-    private fun guardarTarea(texto:String) {
+    private fun guardarTarea(texto: String) {
         val tareaDao = TareaDatabase.getDatabase(requireContext()).getTareaDao()
         val tarea = Tarea(texto)
         GlobalScope.launch { tareaDao.insertarTarea(tarea) }
+    }
 
+    private fun obtenerTarea() {
+        val tareaDao = TareaDatabase.getDatabase(requireContext()).getTareaDao()
+        GlobalScope.launch {
+            val tareaAgregada = tareaDao.getTareas()
+            val tareaComoTexto = tareaAgregada.joinToString("\n") { it.nombre }
+            binding.txtInfoAgregada.text = tareaComoTexto
+        }
     }
 
 }
