@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
     private lateinit var binding: FragmentHomeBinding
+    private lateinit var repo: Repositorio
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,8 +23,14 @@ class HomeFragment : Fragment() {
     ): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         initListeners()
+        initRepo()
         obtenerTarea()
+
         return binding.root
+    }
+
+    private fun initRepo() {
+        repo = Repositorio(TareaDatabase.getDatabase(requireContext()).getTareaDao())
     }
 
     private fun initListeners() {
@@ -35,18 +42,14 @@ class HomeFragment : Fragment() {
     }
 
     private fun guardarTarea(texto: String) {
-        val tareaDao = TareaDatabase.getDatabase(requireContext()).getTareaDao()
         val tarea = Tarea(texto)
-        GlobalScope.launch { tareaDao.insertarTarea(tarea) }
+        GlobalScope.launch { repo.insertTarea(tarea) }
     }
 
     private fun obtenerTarea() {
-        val tareaDao = TareaDatabase.getDatabase(requireContext()).getTareaDao()
-        GlobalScope.launch {
-            val tareaAgregada = tareaDao.getTareas()
-            val tareaComoTexto = tareaAgregada.joinToString("\n") { it.nombre }
+        repo.getTareas().observe(requireActivity()) {
+            val tareaComoTexto = it.joinToString("\n") { it.nombre }
             binding.txtInfoAgregada.text = tareaComoTexto
         }
     }
-
 }
