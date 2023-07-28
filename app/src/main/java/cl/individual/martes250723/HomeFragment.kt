@@ -5,13 +5,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
 import cl.individual.martes250723.databinding.FragmentHomeBinding
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
     private lateinit var binding: FragmentHomeBinding
-    private lateinit var repo: Repositorio
+    private val viewModel : TareaVM by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,15 +24,12 @@ class HomeFragment : Fragment() {
     ): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         initListeners()
-        initRepo()
         obtenerTarea()
 
         return binding.root
     }
 
-    private fun initRepo() {
-        repo = Repositorio(TareaDatabase.getDatabase(requireContext()).getTareaDao())
-    }
+
 
     private fun initListeners() {
         binding.btnRealizar.setOnClickListener {
@@ -43,11 +41,12 @@ class HomeFragment : Fragment() {
 
     private fun guardarTarea(texto: String) {
         val tarea = Tarea(texto)
-        GlobalScope.launch { repo.insertTarea(tarea) }
+        viewModel.insertarTareas(tarea)
+
     }
 
     private fun obtenerTarea() {
-        repo.getTareas().observe(requireActivity()) {
+        viewModel.obtenerTareas().observe(viewLifecycleOwner) {
             val tareaComoTexto = it.joinToString("\n") { it.nombre }
             binding.txtInfoAgregada.text = tareaComoTexto
         }
